@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>尾羽急電鉄 ルーレット</title>
+<style>
+:root{color-scheme:light;--bg:#ffffff;--panel:#edf5ff;--line:#b8d2f2;--text:#142d4d;--muted:#527092;--accent:#1769c2;--accent2:#0e57a6}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;padding:28px}
+main{width:min(100%,760px)}.eyebrow{font-size:.78rem;letter-spacing:.16em;color:var(--accent);font-weight:800;text-align:center;margin:0 0 10px}h1{text-align:center;font-size:clamp(1.7rem,5vw,2.6rem);margin:0 0 26px;letter-spacing:.04em}.board{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,5vw,38px);box-shadow:0 18px 48px #174d8318}.result{min-height:132px;display:grid;place-items:center;text-align:center;padding:24px 12px;margin-bottom:25px;border-radius:16px;border:1px solid #8bb5e8;background:linear-gradient(120deg,#e5f1ff,#d7eaff);color:#123b6d;font-size:clamp(1.45rem,5.7vw,2.7rem);font-weight:850;line-height:1.55;letter-spacing:.025em}.result.placeholder{color:#55789f;font-size:1.15rem;font-weight:600}.result.spin{filter:brightness(1.35);transform:scale(1.01);transition:transform .12s,filter .12s}.group-title{font-size:.82rem;font-weight:800;color:var(--muted);margin:0 0 9px}.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}.pick{padding:13px 12px;background:#f8fbff;border:1px solid var(--line);border-radius:12px;min-width:0}.pick small{display:block;color:var(--muted);font-size:.76rem;margin-bottom:5px}.pick strong{font-size:1rem;overflow-wrap:anywhere}.button-row{display:flex;justify-content:center}.draw{appearance:none;border:0;border-radius:999px;background:var(--accent);color:#ffffff;font:inherit;font-size:1.04rem;font-weight:850;padding:14px 34px;min-width:190px;cursor:pointer;box-shadow:0 8px 25px #1769c230;transition:transform .15s,background .15s}.draw:hover{background:var(--accent2);transform:translateY(-2px)}.draw:active{transform:translateY(0)}.draw:focus-visible{outline:3px solid #0e57a6;outline-offset:4px}.draw:disabled{opacity:.72;cursor:wait}.hint{text-align:center;color:var(--muted);font-size:.82rem;margin:16px 0 0}@media(max-width:520px){body{padding:16px}.picks{grid-template-columns:1fr}.pick{display:flex;justify-content:space-between;gap:12px;align-items:center}.pick small{margin:0}.result{min-height:112px}.draw{width:100%}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">OBAKYU RAILWAY · RANDOM DESTINATION</p>
+<h1>尾羽急電鉄 ルーレット</h1>
+<section class="board" aria-label="列車ルーレット">
+<div id="result" class="result placeholder" aria-live="polite">ボタンを押して運行列車を決定</div>
+<p class="group-title">抽選結果</p>
+<div class="picks">
+<div class="pick"><small>種別</small><strong id="type">—</strong></div>
+<div class="pick"><small>経由</small><strong id="route">—</strong></div>
+<div class="pick"><small>行き先</small><strong id="destination">—</strong></div>
+</div>
+<div class="button-row"><button class="draw" id="draw" type="button">ルーレットを回す</button></div>
+<p class="hint">種別・経由・行き先をそれぞれランダムに選びます</p>
+</section>
+</main>
+<script>
+const choices={
+ type:['各駅停車','快速','準急','区間急行','急行','エアポート急行','快速急行','ノンストップ'],
+ route:['尾羽急本線','尾羽急高速線','尾羽支線','空港線','金田線','箱倉支線','井問線','千鳥支線','飛岡支線','飛金線'],
+ destination:['尾羽原','井口','梅郷','雲中','安越','十川真砂橋','千峰','南雲谷','雲谷','長峰','西高徳','高徳','明神前','舞子台','紀田','穂','瀬舞','余美','千鳥','問屋町','問屋蔵前','赤堀大沢','赤堀','新赤堀','塚野','金田','百鳥','西百鳥','支線尾羽','北尾羽','新高徳','高徳整備場北','高徳空港','鵲橋','金田市','金田空港','金田新都心','新箱倉金田','南箱倉','上井口','参田町','東本郷','本郷','西問屋町','本郷神宮前','千鳥山道','奥千鳥','南千鳥','水橋','飛岡','垂岡','飛水竜田','南竜田','大原','新塚','飛水柏原','上金田','赤堀アリーナ','科学研究所跡']
+};
+const pick=list=>list[Math.floor(Math.random()*list.length)];
+const result=document.querySelector('#result'),button=document.querySelector('#draw');
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+button.addEventListener('click',async()=>{
+ button.disabled=true;result.classList.remove('placeholder');
+ const end=performance.now()+3000;
+ while(performance.now()<end){
+  document.querySelector('#type').textContent=pick(choices.type);
+  document.querySelector('#route').textContent=pick(choices.route);
+  document.querySelector('#destination').textContent=pick(choices.destination);
+  result.textContent=`${document.querySelector('#type').textContent} ${document.querySelector('#route').textContent}経由 ${document.querySelector('#destination').textContent}行き`;
+  result.classList.add('spin');await sleep(75);
+ }
+ const type=pick(choices.type),route=pick(choices.route),destination=pick(choices.destination);
+ document.querySelector('#type').textContent=type;document.querySelector('#route').textContent=route;document.querySelector('#destination').textContent=destination;
+ result.textContent=`${type} ${route}経由 ${destination}行き`;
+ result.classList.remove('spin');button.disabled=false;button.focus();
+});
+</script>
+</body>
+</html>
+
+
+
+
+
